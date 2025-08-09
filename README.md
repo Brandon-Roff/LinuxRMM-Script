@@ -1,10 +1,12 @@
-# rmmagent-script
+# RMM Agent Script
 Script for one-line installation and updating of the tacticalRMM agent
 
-We dont provide technical support for this. If you need help, check the tactical RMM community first!
+Where possible i wil try to help technically
 
-> Scripts are now available for x64, x86, arm64, and armv6. However, only x64 and i386 have been tested on Debian 11 and Debian 10 on bare metal, VMs (Proxmox), and VPS (OVH).
-> Tested on raspberry 2B+ with armv7l (chose armv6 on install)
+
+
+> Scripts works with AMD(X64), x86 Arm64, arm6/7 I have tested the code on Debian 10, 11, 12 and ubuntu 22.04, both bare metal and ProxmoxVMS and using Cloud VPS, also works on raspbain (Raspberry Pi OS) On both Raspberry Pi 2,3b, 3b+, 3A, 4B and Pi 0 (Not recommended)
+
 
 Scripts for other platforms will be available later as we adapt the script to other platforms.
 Feel free to adapt the script and submit changes that will contribute!
@@ -13,10 +15,10 @@ Feel free to adapt the script and submit changes that will contribute!
 
 ### Tips
 
-Download script with this url: `https://raw.githubusercontent.com/netvolt/LinuxRMM-Script/main/rmmagent-linux.sh`
+Download script with this url: `https://raw.githubusercontent.com/Brandon-Roff/LinuxRMM-Script/refs/heads/main/rmmagent-linux.sh`
 
-For Ubuntu systems try: 'wget https://raw.githubusercontent.com/netvolt/LinuxRMM-Script/main/rmmagent-linux.sh'
-Make executable after downloading with: 'sudo chmod +x rmmagent-linux.sh'  
+For Ubuntu systems try: `wget https://raw.githubusercontent.com/Brandon-Roff/LinuxRMM-Script/refs/heads/main/rmmagent-linux.sh` 
+Make executable after downloading with: `sudo chmod +x rmmagent-linux.sh`
 
 ### Fix Blank Screen for Ubuntu Workstations (Ubuntu 16+)
 Ubuntu uses the Wayland display manager instead of the regular X11 server. This causes MeshCentral to show a blank screen, preventing login, viewing, or controlling the client.
@@ -39,6 +41,7 @@ The system architecture is now detected automatically using the following logic:
    - `x86_64` → `amd64` (for 64-bit Intel/AMD processors)  
    - `i386` or `i686` → `x86` (for older 32-bit Intel processors)  
    - `aarch64` → `arm64` (for 64-bit ARM processors, like Raspberry Pi 4 and Apple M1/M2 chips)  
+   - `armv7l` → `armv6` (For Slightly New ARM Devices
    - `armv6l` → `armv6` (for older ARM devices, like Raspberry Pi Zero)  
 3. If the architecture isn't recognized, an error message is displayed, and the script exits to prevent issues.  
 
@@ -61,9 +64,9 @@ The arguments are:
 
   The url given by mesh for installing new agent.
   Go to mesh.example.com > Add agent > Installation Executable Linux / BSD / macOS > **Select the good system type**
-  Copy **ONLY** the URL with the quote.
+  Copy **ONLY** the URL with the quote but Leaving out `&installflags=x&meshinstall=XX` this is determined by CPU Type.
   
-2. API URL
+1. API URL
 
   Your api URL for agent communication usually https://api.example.com.
   
@@ -88,7 +91,7 @@ The arguments are:
   
 ### Example
 ```bash
-./rmmagent-linux.sh install 'https://mesh.example.com/meshagents?id=XXXXX&installflags=X&meshinstall=X' 'https://api.example.com' 3 1 'XXXXX' server
+./rmmagent-linux.sh install 'https://mesh.example.com/meshagents?id=XXXXX' 'https://api.example.com' 3 1 'XXXXX' server
 ```
 
 ## Update
@@ -128,3 +131,8 @@ The argument are:
 ### WARNING
 - You should **only** attempt this if the agent removal feature on TacticalRMM is not working.
 - Running uninstall will **not** remove the connections from the TacticalRMM and MeshCentral Dashboard. You will need to manually remove them. It only forcefully removes the agents from your linux box.
+
+---
+
+Original Project [Netvolt](https://github.com/netvolt/LinuxRMM-Script)
+
