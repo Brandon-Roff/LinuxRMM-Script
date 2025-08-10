@@ -52,9 +52,9 @@ This ensures the script adapts to different system types automatically without n
 To install the agent, launch the script with this argument:
 
 ```bash
-./rmmagent-linux.sh install 'Mesh agent' 'API URL' 'Client ID' 'Site ID' 'Auth Key' 'Agent Type'
+./rmmagent-linux.sh install 'Mesh agent' 'API URL' Client ID Site ID 'Auth Key' 'Agent Type'
 ```
-The compiling can be quite long, don't panic and wait few minutes... USE THE 'SINGLE QUOTES' IN ALL FIELDS!
+The compiling can be quite long, don't panic and wait few minutes... 
 
 The arguments are:
 
@@ -62,7 +62,7 @@ The arguments are:
 
 1. Mesh agent
 
-  The url given by mesh for installing new agent.
+  The url given by mesh for installing new agent. If unsure please check the wiki.
   Go to mesh.example.com > Add agent > Installation Executable Linux / BSD / macOS > **Select the good system type**
   Copy **ONLY** the URL with the quote but Leaving out `&installflags=x&meshinstall=XX` this is determined by CPU Type.
   
