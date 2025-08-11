@@ -39,13 +39,6 @@ List of UNINSTALL arguments:
   Arg 2: Mesh agent FQDN (e.g. mesh.example.com)
   Arg 3: Mesh agent id (wrap in single quotes if it contains special chars)
 
-Examples:
-  Install (auto-appends the right &meshinstall=... based on arch):
-    sudo bash rmmagent-linux.sh install \
-      "https://mesh.bjr-home.uk/meshagents?id=GST9E9o181%24%405XgvYC9q%40coG6b5dy3%24WeGDoauFyIpWVLjTnwUSq2fxgMKiCCLgZ" \
-      "https://rmm-api.bjr-home.uk" 1 1 \
-      21f09fca67448ed8f275b97ff48e9c419ed8d710ffff11bdf82c370ef8e7f3d7 \
-      server
 
   Update:
     sudo bash rmmagent-linux.sh update
