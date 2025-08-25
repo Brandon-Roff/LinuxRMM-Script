@@ -1,3 +1,5 @@
+[![TRMM LOGO](https://docs.tacticalrmm.com/images/onit.ico)](https://docs.tacticalrmm.com/)
+
 # TacticalRMM Agent Installation & Management Script
 
 This repository contains a **one-line installation, update, and removal script** for the TacticalRMM agent on Linux systems.
