@@ -8,9 +8,9 @@ The script is designed for reliability and flexibility, supporting multiple syst
 
 ## 📌 Table of Contents
 
-* [Supported Architectures & Platforms](#supported-architectures--platforms)
-* [Script Download & Setup](#script-download--setup)
-* [Fix Blank Screen on Ubuntu](#fix-blank-screen-for-ubuntu-workstations-16)
+* [Supported Architectures & Platforms](#supported-architectures-platforms)
+* [Script Download & Setup](#script-download-setup)
+* [Fix Blank Screen on Ubuntu](#fix-blank-screen-ubuntu)
 * [Automatic Architecture Detection](#automatic-architecture-detection)
 * [Install the Agent](#install-the-agent)
 * [Update the Agent](#update-the-agent)
@@ -19,6 +19,8 @@ The script is designed for reliability and flexibility, supporting multiple syst
 * [Credits](#credits)
 
 ---
+
+<a id="supported-architectures-platforms"></a>
 
 ## ✅ Supported Architectures & Platforms
 
@@ -41,6 +43,8 @@ Future support for additional platforms will be added.
 
 ---
 
+<a id="script-download-setup"></a>
+
 ## 📥 Script Download & Setup
 
 Download the script:
@@ -59,6 +63,8 @@ sudo chmod +x rmmagent-linux.sh
 
 ---
 
+<a id="fix-blank-screen-ubuntu"></a>
+
 ## 🖥️ Fix Blank Screen for Ubuntu Workstations (16+)
 
 Ubuntu uses **Wayland** by default, which may cause **MeshCentral** remote desktop sessions to display a blank screen.
@@ -76,6 +82,8 @@ After restarting, remote desktop functionality will work properly.
 
 ---
 
+<a id="automatic-architecture-detection"></a>
+
 ## ⚙️ Automatic Architecture Detection
 
 The script automatically detects system architecture using `uname -m` and maps it to the correct agent type:
@@ -89,6 +97,8 @@ The script automatically detects system architecture using `uname -m` and maps i
 If the architecture is unrecognized, the script exits safely with an error message.
 
 ---
+
+<a id="install-the-agent"></a>
 
 ## 🚀 Install the Agent
 
@@ -117,6 +127,8 @@ Run the script with the following syntax:
 
 ---
 
+<a id="update-the-agent"></a>
+
 ## 🔄 Update the Agent
 
 To update an installed agent:
@@ -126,6 +138,8 @@ To update an installed agent:
 ```
 
 ---
+
+<a id="uninstall-the-agent"></a>
 
 ## ❌ Uninstall the Agent
 
@@ -152,6 +166,8 @@ To remove the agent:
 * This process **does not remove records** from TacticalRMM or MeshCentral dashboards. Cleanup must be done manually.
 
 ---
+
+<a id="credits"></a>
 
 ## 📌 Credits
 
