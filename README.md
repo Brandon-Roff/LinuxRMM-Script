@@ -1,138 +1,162 @@
-# RMM Agent Script
-Script for one-line installation and updating of the tacticalRMM agent
+# TacticalRMM Agent Installation & Management Script
 
-Where possible i wil try to help technically
+This repository contains a **one-line installation, update, and removal script** for the TacticalRMM agent on Linux systems.
 
+The script is designed for reliability and flexibility, supporting multiple system architectures and ensuring smooth deployment across different environments.
 
+---
 
-> Scripts works with AMD(X64), x86 Arm64, arm6/7 I have tested the code on Debian 10, 11, 12 and ubuntu 22.04, both bare metal and ProxmoxVMS and using Cloud VPS, also works on raspbain (Raspberry Pi OS) On both Raspberry Pi 2,3b, 3b+, 3A, 4B and Pi 0 (Not recommended)
+## 📌 Table of Contents
 
+* [Supported Architectures & Platforms](#supported-architectures--platforms)
+* [Script Download & Setup](#script-download--setup)
+* [Fix Blank Screen on Ubuntu](#fix-blank-screen-for-ubuntu-workstations-16)
+* [Automatic Architecture Detection](#automatic-architecture-detection)
+* [Install the Agent](#install-the-agent)
+* [Update the Agent](#update-the-agent)
+* [Uninstall the Agent](#uninstall-the-agent)
+* [Installation Wiki](https://github.com/Brandon-Roff/LinuxRMM-Script/wiki)
+* [Credits](#credits)
 
-Scripts for other platforms will be available later as we adapt the script to other platforms.
-Feel free to adapt the script and submit changes that will contribute!
+---
 
-# Usage
+## ✅ Supported Architectures & Platforms
 
-### Tips
+* **x86\_64 (AMD/Intel 64-bit)**
+* **x86 (32-bit)**
+* **ARM64 (aarch64, Raspberry Pi 4, Apple M1/M2)**
+* **ARMv6 / ARMv7 (Raspberry Pi Zero, Pi 2/3 series)**
 
-Download script with this url: `https://raw.githubusercontent.com/Brandon-Roff/LinuxRMM-Script/refs/heads/main/rmmagent-linux.sh`
+### Tested On
 
-For Ubuntu systems try: `wget https://raw.githubusercontent.com/Brandon-Roff/LinuxRMM-Script/refs/heads/main/rmmagent-linux.sh` 
-Make executable after downloading with: `sudo chmod +x rmmagent-linux.sh`
+* Debian 10, 11, 12
+* Ubuntu 22.04
+* Raspbian (Pi 2, 3, 3B+, 3A, 4B, Pi Zero)
+* Cloud VPS providers
+* Proxmox VMs
 
-### Fix Blank Screen for Ubuntu Workstations (Ubuntu 16+)
-Ubuntu uses the Wayland display manager instead of the regular X11 server. This causes MeshCentral to show a blank screen, preventing login, viewing, or controlling the client.
-Using the command lines below should solve the problem:
+> ⚠️ Raspberry Pi Zero is **not recommended** due to performance limitations.
+
+Future support for additional platforms will be added.
+
+---
+
+## 📥 Script Download & Setup
+
+Download the script:
+
+```bash
+wget https://raw.githubusercontent.com/Brandon-Roff/LinuxRMM-Script/refs/heads/main/rmmagent-linux.sh
 ```
+
+Make it executable:
+
+```bash
+sudo chmod +x rmmagent-linux.sh
+```
+
+📖 Full installation guide available here: [Installation Wiki](https://github.com/Brandon-Roff/LinuxRMM-Script/wiki)
+
+---
+
+## 🖥️ Fix Blank Screen for Ubuntu Workstations (16+)
+
+Ubuntu uses **Wayland** by default, which may cause **MeshCentral** remote desktop sessions to display a blank screen.
+
+Run the following commands to switch back to X11:
+
+```bash
 sudo sed -i '/WaylandEnable/s/^#//g' /etc/gdm3/custom.conf
 sudo systemctl restart gdm
 ```
-This will cause your screen to go blank for a second. You will be able to use remote desktop afterwards.
-> If you encounter a 'file not found' error, you are likely using Ubuntu 19 or earlier. On these machines, the config file will be located on /etc/gdm/custom.conf. Modify the command above accordingly. <
-Please note that remote desktop features are only installed when you used the workstation agent. You may need to reinstall your mesh agent.
 
+> 🔹 On Ubuntu 19 and earlier, the file path is `/etc/gdm/custom.conf`.
 
-## Automatically Detect System Architecture  
+After restarting, remote desktop functionality will work properly.
 
-The system architecture is now detected automatically using the following logic:  
+---
 
-1. The `uname -m` command retrieves the current system's architecture.  
-2. A `case` statement then checks the architecture and maps it to a standard format:  
-   - `x86_64` → `amd64` (for 64-bit Intel/AMD processors)  
-   - `i386` or `i686` → `x86` (for older 32-bit Intel processors)  
-   - `aarch64` → `arm64` (for 64-bit ARM processors, like Raspberry Pi 4 and Apple M1/M2 chips)  
-   - `armv7l` → `armv6` (For Slightly New ARM Devices
-   - `armv6l` → `armv6` (for older ARM devices, like Raspberry Pi Zero)  
-3. If the architecture isn't recognized, an error message is displayed, and the script exits to prevent issues.  
+## ⚙️ Automatic Architecture Detection
 
-This ensures the script adapts to different system types automatically without needing manual input.
+The script automatically detects system architecture using `uname -m` and maps it to the correct agent type:
 
+* `x86_64` → **amd64**
+* `i386` / `i686` → **x86**
+* `aarch64` → **arm64**
+* `armv7l` → **armv6**
+* `armv6l` → **armv6**
 
-## Install
-To install the agent, launch the script with this argument:
+If the architecture is unrecognized, the script exits safely with an error message.
+
+---
+
+## 🚀 Install the Agent
+
+Run the script with the following syntax:
 
 ```bash
-./rmmagent-linux.sh install 'Mesh agent' 'API URL' Client ID Site ID 'Auth Key' 'Agent Type'
+./rmmagent-linux.sh install 'Mesh Agent URL' 'API URL' ClientID SiteID 'Auth Key' 'Agent Type'
 ```
-The compiling can be quite long, don't panic and wait few minutes... 
 
-The arguments are:
+### Parameters:
 
+1. **Mesh Agent URL** – Provided by MeshCentral (`Add Agent > Installation Executable Linux/BSD/macOS`). Copy only the base URL, leaving out install flags.
+2. **API URL** – TacticalRMM API endpoint, usually `https://api.example.com`.
+3. **Client ID** – Visible when hovering over the client name in TacticalRMM.
+4. **Site ID** – Visible when hovering over the site name in TacticalRMM.
+5. **Auth Key** – Generated under `Agents > Install Agent (Windows) > Manual`. Copy the value after `--auth`.
+6. **Agent Type** – `server` or `workstation`.
 
+### Example:
 
-1. Mesh agent
-
-  The url given by mesh for installing new agent. If unsure please check the wiki.
-  Go to mesh.example.com > Add agent > Installation Executable Linux / BSD / macOS > **Select the good system type**
-  Copy **ONLY** the URL with the quote but Leaving out `&installflags=x&meshinstall=XX` this is determined by CPU Type.
-  
-1. API URL
-
-  Your api URL for agent communication usually https://api.example.com.
-  
-3. Client ID
-
-  The ID of the client in wich agent will be added.
-  Can be viewed by hovering over the name of the client in the dashboard.
-  
-4. Site ID
-
-  The ID of the site in wich agent will be added.
-  Can be viewed by hovering over the name of the site in the dashboard.
-  
-5. Auth Key
-
-  Authentification key given by dashboard by going to dashboard > Agents > Install agent (Windows) > Select manual and show
-  Copy **ONLY** the key after *--auth*.
-  
-6. Agent Type
-
-  Can be *server* or *workstation* and define the type of agent.
-  
-### Example
 ```bash
 ./rmmagent-linux.sh install 'https://mesh.example.com/meshagents?id=XXXXX' 'https://api.example.com' 3 1 'XXXXX' server
 ```
 
-## Update
+⏳ *Note: Compilation may take several minutes depending on hardware. Please be patient.*
 
-Simply launch the script with *update* as argument.
+---
+
+## 🔄 Update the Agent
+
+To update an installed agent:
 
 ```bash
 ./rmmagent-linux.sh update
 ```
 
-## Uninstall
-To uninstall the agent, launch the script with this argument:
+---
+
+## ❌ Uninstall the Agent
+
+To remove the agent:
 
 ```bash
 ./rmmagent-linux.sh uninstall 'Mesh FQDN' 'Mesh ID'
 ```
-Note: Single quotes must be around the Mesh ID for it to uninstall the mesh agent properly
 
-The argument are:
+### Parameters:
 
-2. Mesh FQDN
+* **Mesh FQDN** – Example: `mesh.example.com`
+* **Mesh ID** – 64-character alphanumeric ID (Linux/BSD uninstall instructions in MeshCentral).
 
-  Example of FQDN: mesh.example.com 
+### Example:
 
-3. Mesh ID
-
-  The ID given by mesh for installing new agent.
-
-  Go to mesh.example.com > Add agent > Linux / BSD (Uninstall) > Copy **ONLY** the last value with the single quotes.
-  You are looking for a 64 charaters long value of random letter case, numbers, and special characters.
-
-### Example
 ```bash
 ./rmmagent-linux.sh uninstall mesh.example.com 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
-### WARNING
-- You should **only** attempt this if the agent removal feature on TacticalRMM is not working.
-- Running uninstall will **not** remove the connections from the TacticalRMM and MeshCentral Dashboard. You will need to manually remove them. It only forcefully removes the agents from your linux box.
+⚠️ **Important Notes:**
+
+* Only use this method if agent removal in TacticalRMM is not working.
+* This process **does not remove records** from TacticalRMM or MeshCentral dashboards. Cleanup must be done manually.
 
 ---
 
-Original Project [Netvolt](https://github.com/netvolt/LinuxRMM-Script)
+## 📌 Credits
 
+This project is based on [Netvolt’s LinuxRMM-Script](https://github.com/netvolt/LinuxRMM-Script), with extended compatibility and refinements.
+
+---
+
+✨ **Professional, robust, and multi-platform ready — the easiest way to manage TacticalRMM agents on Linux.**
