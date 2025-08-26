@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tactical RMM Linux installer/updater
+# Tactical RMM Linux installer/updater/uninstaller
 
 set -e
 
@@ -79,7 +79,7 @@ mesh_fqdn=$2          # fqdn like mesh.example.com
 mesh_id=$3            # mesh agent id
 
 #--- versions / URLs -----------------------------------------------------------
-go_version="1.23.6"
+go_version="1.24.6"
 go_url_amd64="https://go.dev/dl/go${go_version}.linux-amd64.tar.gz"
 go_url_x86="https://go.dev/dl/go${go_version}.linux-386.tar.gz"
 go_url_arm64="https://go.dev/dl/go${go_version}.linux-arm64.tar.gz"
