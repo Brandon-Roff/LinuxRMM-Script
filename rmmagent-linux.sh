@@ -1,7 +1,19 @@
 #!/bin/bash
 # Tactical RMM Linux installer/updater/uninstaller
 
-set -e
+set -euo pipefail
+
+#--- cleanup trap --------------------------------------------------------------
+cleanup() {
+    echo "Cleaning up temporary files..."
+    rm -rf /tmp/temp_rmmagent \
+           /tmp/rmmagent-master \
+           /tmp/meshagent \
+           /tmp/meshagent.msh \
+           /tmp/golang.tar.gz \
+           ./go 2>/dev/null || true
+}
+trap cleanup EXIT
 
 #--- safety: require root -------------------------------------------------------
 if [[ $EUID -ne 0 ]]; then
@@ -39,6 +51,12 @@ List of UNINSTALL arguments:
   Arg 2: Mesh agent FQDN (e.g. mesh.example.com)
   Arg 3: Mesh agent id (wrap in single quotes if it contains special chars)
 
+
+  Install:
+    sudo bash rmmagent-linux.sh install \
+      "https://mesh.example.com/meshagents?id=ENCODED_ID" \
+      "https://rmm-api.example.com" \
+      1 2 "SuperSecretAuthKey" server
 
   Update:
     sudo bash rmmagent-linux.sh update
@@ -96,14 +114,13 @@ function go_install() {
         echo "Installing Go $go_version for $system..."
         case "$system" in
             amd64) url="$go_url_amd64" ;;
-            x86)   url="$go_url_x86"   ;;
+            x86)   url="$go_url_x86" ;;
             arm64) url="$go_url_arm64" ;;
             armv6) url="$go_url_armv6" ;;
         esac
         wget -O /tmp/golang.tar.gz "$url"
         rm -rf /usr/local/go/
         tar -xvzf /tmp/golang.tar.gz -C /usr/local/
-        rm -f /tmp/golang.tar.gz
 
         # ensure /usr/local/go/bin is on PATH for this session and future logins
         export PATH=/usr/local/go/bin:$PATH
@@ -118,7 +135,6 @@ function agent_compile() {
     echo "Compiling Tactical RMM agent for $system..."
     wget -O /tmp/rmmagent.tar.gz "https://github.com/amidaware/rmmagent/archive/refs/heads/master.tar.gz"
     tar -xf /tmp/rmmagent.tar.gz -C /tmp/
-    rm -f /tmp/rmmagent.tar.gz
     cd /tmp/rmmagent-master
 
     case "$system" in
@@ -129,7 +145,6 @@ function agent_compile() {
     esac
 
     cd /tmp
-    rm -rf /tmp/rmmagent-master
     echo "Agent compiled."
 }
 
@@ -137,7 +152,6 @@ function update_agent() {
     echo "Updating tacticalagent binary..."
     systemctl stop tacticalagent || true
     install -m 0755 /tmp/temp_rmmagent /usr/local/bin/rmmagent
-    rm -f /tmp/temp_rmmagent
     systemctl start tacticalagent || true
     echo "Update complete."
 }
@@ -151,8 +165,6 @@ function install_agent() {
         -site-id "$rmm_site_id" \
         -agent-type "$rmm_agent_type" \
         -auth "$rmm_auth"
-
-    rm -f /tmp/temp_rmmagent
 
     cat >/etc/systemd/system/tacticalagent.service <<'EOF'
 [Unit]
@@ -175,7 +187,6 @@ EOF
 
     systemctl daemon-reload
     systemctl enable --now tacticalagent
-    systemctl start tacticalagent
     echo "tacticalagent service installed and started."
 }
 
@@ -185,7 +196,7 @@ function install_mesh() {
         amd64) mesh_param="$mesh_amd64" ;;
         armv6) mesh_param="$mesh_arm6l" ;;
         arm64) mesh_param="$mesh_arm64" ;;
-        x86)   mesh_param="$mesh_amd64" ;; # Mesh typically uses 32-bit x86 under the amd64 flag set; adjust if needed.
+        x86)   mesh_param="$mesh_amd64" ;; # adjust if Mesh supports 32-bit properly
         *) echo "No Mesh installer flag for this architecture: $system"; exit 1 ;;
     esac
 
@@ -196,7 +207,6 @@ function install_mesh() {
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
     /tmp/meshagent -install --installPath="/opt/tacticalmesh"
-    rm -f /tmp/meshagent /tmp/meshagent.msh
     echo "Mesh agent installed."
 }
 
@@ -223,9 +233,7 @@ function uninstall_mesh() {
         || wget "https://${mesh_fqdn}/meshagents?script=1" --no-proxy -O /tmp/meshinstall.sh
 
     chmod 755 /tmp/meshinstall.sh
-    /tmp/meshinstall.sh uninstall "https://${mesh_fqdn}" "$mesh_id" \
-        || /tmp/meshinstall.sh uninstall uninstall uninstall "https://${mesh_fqdn}" "$mesh_id" || true
-    rm -f /tmp/meshinstall.sh
+    /tmp/meshinstall.sh uninstall "https://${mesh_fqdn}" "$mesh_id" || true
     echo "Mesh agent uninstall attempted (see messages above)."
 }
 
