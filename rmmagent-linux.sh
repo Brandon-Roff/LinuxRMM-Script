@@ -207,6 +207,8 @@ function install_mesh() {
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
     /tmp/meshagent -install --installPath="/opt/tacticalmesh"
+    systemctl enable --now meshagent
+    systemctl restart meshagent
     echo "Mesh agent installed."
 }
 
