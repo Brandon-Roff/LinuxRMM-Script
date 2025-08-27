@@ -1,11 +1,24 @@
-#!/bin/bash
-# Tactical RMM Linux installer/updater/uninstaller
-
 set -euo pipefail
+
+#--- check for --simple flag ---------------------------------------------------
+SIMPLE_MODE=false
+if [[ "${1:-}" == "--simple" ]]; then
+    SIMPLE_MODE=true
+    shift  # remove --simple from positional args
+fi
+
+# simple echo function
+s_echo() {
+    if $SIMPLE_MODE; then
+        echo "$1"
+    else
+        echo -e "$1"
+    fi
+}
 
 #--- cleanup trap --------------------------------------------------------------
 cleanup() {
-    echo "Cleaning up temporary files..."
+    s_echo "Cleaning up temporary files..."
     rm -rf /tmp/temp_rmmagent \
            /tmp/rmmagent-master \
            /tmp/meshagent \
@@ -17,14 +30,14 @@ trap cleanup EXIT
 
 #--- safety: require root -------------------------------------------------------
 if [[ $EUID -ne 0 ]]; then
-    echo "Please run as root (e.g. sudo $0 ...)"
+    s_echo "Please run as root (e.g. sudo $0 ...)"
     exit 1
 fi
 
 #--- usage / guards -------------------------------------------------------------
 if [[ -z "${1:-}" ]]; then
-    echo "First argument is empty!"
-    echo "Type 'help' for more information"
+    s_echo "First argument is empty!"
+    s_echo "Type 'help' for more information"
     exit 1
 fi
 
@@ -68,8 +81,8 @@ EOF
 fi
 
 if [[ "$1" != "install" && "$1" != "update" && "$1" != "uninstall" ]]; then
-    echo "First argument can only be 'install' or 'update' or 'uninstall'!"
-    echo "Type 'help' for more information"
+    s_echo "First argument can only be 'install' or 'update' or 'uninstall'!"
+    s_echo "Type 'help' for more information"
     exit 1
 fi
 
@@ -81,7 +94,7 @@ case "$system" in
     aarch64) system="arm64" ;;
     armv6l) system="armv6" ;;
     armv7l) system="armv6" ;;   # Mesh uses the armv6 build/flag for armv7
-    *) echo "Unsupported architecture: $system"; exit 1 ;;
+    *) s_echo "Unsupported architecture: $system"; exit 1 ;;
 esac
 
 #--- inputs --------------------------------------------------------------------
@@ -111,7 +124,7 @@ mesh_arm64="&installflags=0&meshinstall=26"
 #--- helpers -------------------------------------------------------------------
 function go_install() {
     if ! command -v go >/dev/null 2>&1; then
-        echo "Installing Go $go_version for $system..."
+        s_echo "Installing Go $go_version for $system..."
         case "$system" in
             amd64) url="$go_url_amd64" ;;
             x86)   url="$go_url_x86" ;;
@@ -122,17 +135,16 @@ function go_install() {
         rm -rf /usr/local/go/
         tar -xvzf /tmp/golang.tar.gz -C /usr/local/
 
-        # ensure /usr/local/go/bin is on PATH for this session and future logins
         export PATH=/usr/local/go/bin:$PATH
         if ! grep -q "/usr/local/go/bin" /etc/profile; then
             echo 'export PATH=/usr/local/go/bin:$PATH' >> /etc/profile
         fi
-        echo "Go is installed."
+        s_echo "Go installed."
     fi
 }
 
 function agent_compile() {
-    echo "Compiling Tactical RMM agent for $system..."
+    s_echo "Compiling Tactical RMM agent for $system..."
     wget -O /tmp/rmmagent.tar.gz "https://github.com/amidaware/rmmagent/archive/refs/heads/master.tar.gz"
     tar -xf /tmp/rmmagent.tar.gz -C /tmp/
     cd /tmp/rmmagent-master
@@ -145,19 +157,19 @@ function agent_compile() {
     esac
 
     cd /tmp
-    echo "Agent compiled."
+    s_echo "Agent compiled."
 }
 
 function update_agent() {
-    echo "Updating tacticalagent binary..."
+    s_echo "Updating tacticalagent binary..."
     systemctl stop tacticalagent || true
     install -m 0755 /tmp/temp_rmmagent /usr/local/bin/rmmagent
     systemctl start tacticalagent || true
-    echo "Update complete."
+    s_echo "Update complete."
 }
 
 function install_agent() {
-    echo "Installing tacticalagent service..."
+    s_echo "Installing tacticalagent service..."
     install -m 0755 /tmp/temp_rmmagent /usr/local/bin/rmmagent
     /usr/local/bin/rmmagent -m install \
         -api "$rmm_url" \
@@ -187,57 +199,49 @@ EOF
 
     systemctl daemon-reload
     systemctl enable --now tacticalagent
-    echo "tacticalagent service installed and started."
-    systemctl enable --now meshagent || true
-    systemctl restart meshagent || true
-    echo "meshagent service enabled and Installed."
+    s_echo "tacticalagent service installed and started."
 }
 
 function install_mesh() {
-    echo "Installing MeshCentral agent for $system..."
+    s_echo "Installing MeshCentral agent for $system..."
     case "$system" in
         amd64) mesh_param="$mesh_amd64" ;;
         armv6) mesh_param="$mesh_arm6l" ;;
         arm64) mesh_param="$mesh_arm64" ;;
-        x86)   mesh_param="$mesh_amd64" ;; # adjust if Mesh supports 32-bit properly
-        *) echo "No Mesh installer flag for this architecture: $system"; exit 1 ;;
+        x86)   mesh_param="$mesh_amd64" ;;
+        *) s_echo "No Mesh installer flag for this architecture: $system"; exit 1 ;;
     esac
 
-    # Expect mesh_url to be base URL WITHOUT flags; we append the arch flags here
     full_mesh_url="${mesh_url}${mesh_param}"
-
     wget -O /tmp/meshagent "$full_mesh_url"
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
     /tmp/meshagent -install --installPath="/opt/tacticalmesh"
-    echo "Mesh agent installed."
+    s_echo "Mesh agent installed."
 }
 
 function uninstall_agent() {
-    echo "Uninstalling tacticalagent..."
+    s_echo "Uninstalling tacticalagent..."
     systemctl stop tacticalagent || true
     systemctl disable tacticalagent || true
     rm -f /etc/systemd/system/tacticalagent.service
     systemctl daemon-reload
     rm -f /usr/local/bin/rmmagent
     rm -rf /etc/tacticalagent
-    echo "tacticalagent uninstalled."
+    s_echo "tacticalagent uninstalled."
 }
 
 function uninstall_mesh() {
-    echo "Uninstalling MeshCentral agent..."
+    s_echo "Uninstalling MeshCentral agent..."
     if [[ -z "$mesh_fqdn" || -z "$mesh_id" ]]; then
-        echo "Mesh FQDN and Mesh ID are required for uninstall."
+        s_echo "Mesh FQDN and Mesh ID are required for uninstall."
         exit 1
     fi
-
-    # Try with proxy and without proxy
     wget "https://${mesh_fqdn}/meshagents?script=1" -O /tmp/meshinstall.sh \
         || wget "https://${mesh_fqdn}/meshagents?script=1" --no-proxy -O /tmp/meshinstall.sh
-
     chmod 755 /tmp/meshinstall.sh
     /tmp/meshinstall.sh uninstall "https://${mesh_fqdn}" "$mesh_id" || true
-    echo "Mesh agent uninstall attempted (see messages above)."
+    s_echo "Mesh agent uninstall attempted (see messages above)."
 }
 
 #--- dispatcher ----------------------------------------------------------------
@@ -247,17 +251,17 @@ case "$1" in
         install_mesh
         agent_compile
         install_agent
-        echo "Tactical Agent Install is done"
+        s_echo "Tactical Agent Install is done"
         ;;
     update)
         go_install
         agent_compile
         update_agent
-        echo "Tactical Agent Update is done"
+        s_echo "Tactical Agent Update is done"
         ;;
     uninstall)
         uninstall_agent
         uninstall_mesh
-        echo "Tactical Agent Uninstall is done"
+        s_echo "Tactical Agent Uninstall is done"
         ;;
 esac
