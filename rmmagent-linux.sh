@@ -188,6 +188,9 @@ EOF
     systemctl daemon-reload
     systemctl enable --now tacticalagent
     echo "tacticalagent service installed and started."
+    systemctl enable --now meshagent || true
+    systemctl restart meshagent || true
+    echo "meshagent service enabled and Installed."
 }
 
 function install_mesh() {
@@ -207,8 +210,6 @@ function install_mesh() {
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
     /tmp/meshagent -install --installPath="/opt/tacticalmesh"
-    systemctl enable --now meshagent
-    systemctl restart meshagent
     echo "Mesh agent installed."
 }
 
