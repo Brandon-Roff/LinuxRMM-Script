@@ -10,15 +10,17 @@ The script is designed for reliability and flexibility, supporting multiple syst
 
 ## 📌 Table of Contents
 
-* [Supported Architectures & Platforms](#supported-architectures-platforms)
-* [Script Download & Setup](#script-download-setup)
-* [Fix Blank Screen on Ubuntu](#fix-blank-screen-ubuntu)
-* [Automatic Architecture Detection](#automatic-architecture-detection)
-* [Install the Agent](#install-the-agent)
-* [Update the Agent](#update-the-agent)
-* [Uninstall the Agent](#uninstall-the-agent)
-* [Installation Wiki](https://github.com/Brandon-Roff/LinuxRMM-Script/wiki)
-* [Credits](#credits)
+* [✅ Supported Architectures & Platforms](#supported-architectures-platforms)
+* [📥 Script Download & Setup](#script-download-setup)
+* [🖥️ Fix Blank Screen on Ubuntu](#fix-blank-screen-ubuntu)
+* [⚙️ Automatic Architecture Detection](#automatic-architecture-detection)
+* [🚀 Install the Agent](#install-the-agent)
+  * [🎨 Prettier `--simple` Output](#prettier-simple-output)
+* [🔄 Update the Agent](#update-the-agent)
+* [❌ Uninstall the Agent](#uninstall-the-agent)
+* [📖 Installation Wiki](https://github.com/Brandon-Roff/LinuxRMM-Script/wiki)
+* [📌 Credits](#credits)
+
 
 ---
 
