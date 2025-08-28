@@ -176,7 +176,7 @@ sudo bash rmmagent-linux.sh --simple install 'Mesh Agent URL' 'API URL' ClientID
 [INFO] Cleaning up temporary files...
 
 [OK] ✅ Temporary files cleaned.
-
+```
 ---
 
 <a id="update-the-agent"></a>
