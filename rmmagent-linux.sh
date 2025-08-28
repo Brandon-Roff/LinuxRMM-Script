@@ -1,3 +1,4 @@
+
 set -euo pipefail
 
 #--- check for --simple flag ---------------------------------------------------
@@ -131,9 +132,9 @@ function go_install() {
             arm64) url="$go_url_arm64" ;;
             armv6) url="$go_url_armv6" ;;
         esac
-        wget -O /tmp/golang.tar.gz "$url"
+        wget -q --show-progress -O /tmp/golang.tar.gz "$url"
         rm -rf /usr/local/go/
-        tar -xvzf /tmp/golang.tar.gz -C /usr/local/
+        tar -xzf /tmp/golang.tar.gz -C /usr/local/
 
         export PATH=/usr/local/go/bin:$PATH
         if ! grep -q "/usr/local/go/bin" /etc/profile; then
@@ -145,16 +146,20 @@ function go_install() {
 
 function agent_compile() {
     s_echo "Compiling Tactical RMM agent for $system..."
-    wget -O /tmp/rmmagent.tar.gz "https://github.com/amidaware/rmmagent/archive/refs/heads/master.tar.gz"
-    tar -xf /tmp/rmmagent.tar.gz -C /tmp/
+    wget -q -O /tmp/rmmagent.tar.gz "https://github.com/amidaware/rmmagent/archive/refs/heads/master.tar.gz"
+    tar -xzf /tmp/rmmagent.tar.gz -C /tmp/
     cd /tmp/rmmagent-master
 
-    case "$system" in
-        amd64) env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
-        x86)   env CGO_ENABLED=0 GOOS=linux GOARCH=386   go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
-        arm64) env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
-        armv6) env CGO_ENABLED=0 GOOS=linux GOARCH=arm   go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
-    esac
+    if $SIMPLE_MODE; then
+        env CGO_ENABLED=0 GOOS=linux GOARCH=$([[ "$system" == "amd64" ]] && echo "amd64" || [[ "$system" == "x86" ]] && echo "386" || [[ "$system" == "arm64" ]] && echo "arm64" || echo "arm") go build -ldflags "-s -w" -o /tmp/temp_rmmagent >/dev/null 2>&1
+    else
+        case "$system" in
+            amd64) env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
+            x86)   env CGO_ENABLED=0 GOOS=linux GOARCH=386   go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
+            arm64) env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
+            armv6) env CGO_ENABLED=0 GOOS=linux GOARCH=arm   go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
+        esac
+    fi
 
     cd /tmp
     s_echo "Agent compiled."
@@ -213,10 +218,10 @@ function install_mesh() {
     esac
 
     full_mesh_url="${mesh_url}${mesh_param}"
-    wget -O /tmp/meshagent "$full_mesh_url"
+    wget -q -O /tmp/meshagent "$full_mesh_url"
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
-    /tmp/meshagent -install --installPath="/opt/tacticalmesh"
+    $SIMPLE_MODE && /tmp/meshagent -install --installPath="/opt/tacticalmesh" >/dev/null 2>&1 || /tmp/meshagent -install --installPath="/opt/tacticalmesh"
     s_echo "Mesh agent installed."
 }
 
@@ -237,8 +242,8 @@ function uninstall_mesh() {
         s_echo "Mesh FQDN and Mesh ID are required for uninstall."
         exit 1
     fi
-    wget "https://${mesh_fqdn}/meshagents?script=1" -O /tmp/meshinstall.sh \
-        || wget "https://${mesh_fqdn}/meshagents?script=1" --no-proxy -O /tmp/meshinstall.sh
+    wget -q "https://${mesh_fqdn}/meshagents?script=1" -O /tmp/meshinstall.sh \
+        || wget -q "https://${mesh_fqdn}/meshagents?script=1" --no-proxy -O /tmp/meshinstall.sh
     chmod 755 /tmp/meshinstall.sh
     /tmp/meshinstall.sh uninstall "https://${mesh_fqdn}" "$mesh_id" || true
     s_echo "Mesh agent uninstall attempted (see messages above)."
@@ -251,17 +256,17 @@ case "$1" in
         install_mesh
         agent_compile
         install_agent
-        s_echo "Tactical Agent Install is done"
+        s_echo "Tactical Agent Install is done."
         ;;
     update)
         go_install
         agent_compile
         update_agent
-        s_echo "Tactical Agent Update is done"
+        s_echo "Tactical Agent Update is done."
         ;;
     uninstall)
         uninstall_agent
         uninstall_mesh
-        s_echo "Tactical Agent Uninstall is done"
+        s_echo "Tactical Agent Uninstall is done."
         ;;
 esac
