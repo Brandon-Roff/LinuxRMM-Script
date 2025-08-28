@@ -188,17 +188,6 @@ To update an installed agent:
 ```bash
 ./rmmagent-linux.sh update
 ```
-<a id="update-the-agent"></a>
-
-## 🔄 Update the Agent
-
-The script supports updating an existing TacticalRMM agent with the same prettier output as installation.
-
-### Usage
-
-```bash
-./rmmagent-linux.sh update
-```
 ---
 
 <a id="uninstall-the-agent"></a>
