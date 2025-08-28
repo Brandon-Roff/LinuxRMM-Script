@@ -1,4 +1,3 @@
-
 set -euo pipefail
 
 #--- check for --simple flag ---------------------------------------------------
@@ -50,8 +49,7 @@ There is help, but more information is available at:
 List of INSTALL arguments (positional, no names):
   Arg 1: 'install'
   Arg 2: Mesh agent BASE URL (WITHOUT &installflags / &meshinstall)
-         e.g. https://mesh.example.com/meshagents?id=ENCODED_ID
-  Arg 3: RMM API URL (e.g. https://rmm-api.example.com)
+  Arg 3: RMM API URL
   Arg 4: Client ID
   Arg 5: Site ID
   Arg 6: Auth Key
@@ -62,28 +60,19 @@ List of UPDATE arguments:
 
 List of UNINSTALL arguments:
   Arg 1: 'uninstall'
-  Arg 2: Mesh agent FQDN (e.g. mesh.example.com)
-  Arg 3: Mesh agent id (wrap in single quotes if it contains special chars)
+  Arg 2: Mesh agent FQDN
+  Arg 3: Mesh agent ID
 
-
-  Install:
-    sudo bash rmmagent-linux.sh install \
-      "https://mesh.example.com/meshagents?id=ENCODED_ID" \
-      "https://rmm-api.example.com" \
-      1 2 "SuperSecretAuthKey" server
-
-  Update:
+  Examples:
+    sudo bash rmmagent-linux.sh install "mesh_url" "rmm_url" 1 1 "auth" server
     sudo bash rmmagent-linux.sh update
-
-  Uninstall:
-    sudo bash rmmagent-linux.sh uninstall mesh.bjr-home.uk 'your_mesh_id_here'
+    sudo bash rmmagent-linux.sh uninstall mesh.example.com 'mesh_id'
 EOF
     exit 0
 fi
 
 if [[ "$1" != "install" && "$1" != "update" && "$1" != "uninstall" ]]; then
-    s_echo "First argument can only be 'install' or 'update' or 'uninstall'!"
-    s_echo "Type 'help' for more information"
+    s_echo "First argument must be 'install', 'update', or 'uninstall'."
     exit 1
 fi
 
@@ -94,21 +83,38 @@ case "$system" in
     i386|i686) system="x86" ;;
     aarch64) system="arm64" ;;
     armv6l) system="armv6" ;;
-    armv7l) system="armv6" ;;   # Mesh uses the armv6 build/flag for armv7
+    armv7l) system="armv6" ;;
     *) s_echo "Unsupported architecture: $system"; exit 1 ;;
 esac
 
 #--- inputs --------------------------------------------------------------------
-mesh_url=$2           # for install: base mesh url WITHOUT flags
+mesh_url=$2           # for install: base mesh url
 rmm_url=$3
 rmm_client_id=$4
 rmm_site_id=$5
 rmm_auth=$6
 rmm_agent_type=$7
 
-# for uninstall path:
-mesh_fqdn=$2          # fqdn like mesh.example.com
-mesh_id=$3            # mesh agent id
+# for uninstall:
+mesh_fqdn=$2
+mesh_id=$3
+
+# Argument validation
+if [[ "$1" == "install" ]]; then
+    for var in mesh_url rmm_url rmm_client_id rmm_site_id rmm_auth rmm_agent_type; do
+        if [[ -z "${!var:-}" ]]; then
+            s_echo "Error: Missing required argument '$var' for install."
+            exit 1
+        fi
+    done
+elif [[ "$1" == "uninstall" ]]; then
+    for var in mesh_fqdn mesh_id; do
+        if [[ -z "${!var:-}" ]]; then
+            s_echo "Error: Missing required argument '$var' for uninstall."
+            exit 1
+        fi
+    done
+fi
 
 #--- versions / URLs -----------------------------------------------------------
 go_version="1.24.6"
@@ -117,7 +123,6 @@ go_url_x86="https://go.dev/dl/go${go_version}.linux-386.tar.gz"
 go_url_arm64="https://go.dev/dl/go${go_version}.linux-arm64.tar.gz"
 go_url_armv6="https://go.dev/dl/go${go_version}.linux-armv6l.tar.gz"
 
-# Mesh flags by arch
 mesh_amd64="&installflags=0&meshinstall=6"
 mesh_arm6l="&installflags=0&meshinstall=25"
 mesh_arm64="&installflags=0&meshinstall=26"
@@ -160,17 +165,8 @@ function agent_compile() {
             armv6) env CGO_ENABLED=0 GOOS=linux GOARCH=arm   go build -ldflags "-s -w" -o /tmp/temp_rmmagent ;;
         esac
     fi
-
     cd /tmp
     s_echo "Agent compiled."
-}
-
-function update_agent() {
-    s_echo "Updating tacticalagent binary..."
-    systemctl stop tacticalagent || true
-    install -m 0755 /tmp/temp_rmmagent /usr/local/bin/rmmagent
-    systemctl start tacticalagent || true
-    s_echo "Update complete."
 }
 
 function install_agent() {
@@ -216,9 +212,8 @@ function install_mesh() {
         x86)   mesh_param="$mesh_amd64" ;;
         *) s_echo "No Mesh installer flag for this architecture: $system"; exit 1 ;;
     esac
-
     full_mesh_url="${mesh_url}${mesh_param}"
-    wget -q -O /tmp/meshagent "$full_mesh_url"
+    $SIMPLE_MODE && wget -q -O /tmp/meshagent "$full_mesh_url" || wget -O /tmp/meshagent "$full_mesh_url"
     chmod +x /tmp/meshagent
     mkdir -p /opt/tacticalmesh
     $SIMPLE_MODE && /tmp/meshagent -install --installPath="/opt/tacticalmesh" >/dev/null 2>&1 || /tmp/meshagent -install --installPath="/opt/tacticalmesh"
@@ -238,15 +233,11 @@ function uninstall_agent() {
 
 function uninstall_mesh() {
     s_echo "Uninstalling MeshCentral agent..."
-    if [[ -z "$mesh_fqdn" || -z "$mesh_id" ]]; then
-        s_echo "Mesh FQDN and Mesh ID are required for uninstall."
-        exit 1
-    fi
     wget -q "https://${mesh_fqdn}/meshagents?script=1" -O /tmp/meshinstall.sh \
         || wget -q "https://${mesh_fqdn}/meshagents?script=1" --no-proxy -O /tmp/meshinstall.sh
     chmod 755 /tmp/meshinstall.sh
     /tmp/meshinstall.sh uninstall "https://${mesh_fqdn}" "$mesh_id" || true
-    s_echo "Mesh agent uninstall attempted (see messages above)."
+    s_echo "Mesh agent uninstall attempted."
 }
 
 #--- dispatcher ----------------------------------------------------------------
