@@ -130,6 +130,54 @@ Run the script with the following syntax:
 ⏳ *Note: Compilation may take several minutes depending on hardware. Please be patient.*
 
 ---
+<a id="prettier-simple-output"></a>
+
+## 🎨 Prettier `--simple` Output
+
+he script supports a `--simple` flag to make installation output cleaner and more readable.  
+
+### Usage:
+
+```bash
+sudo bash rmmagent-linux.sh --simple install 'Mesh Agent URL' 'API URL' ClientID SiteID 'Auth Key' 'Agent Type'
+```
+
+### Features:
+
+* **Color-coded messages:**
+  * `[INFO]` – Blue, informational updates
+  * `[OK] ✅` – Green, successful steps
+  * `[ERROR] ❌` – Red, failed steps
+* Spacing between sections for easier reading
+* Collapsed download/compile progress to avoid clutter
+* All temporary files cleanup is highlighted clearly
+
+### Example:
+
+```bash
+[INFO] Installing Go 1.24.6 for amd64...
+
+[OK] ✅ Go 1.24.6 installed.
+
+[INFO] Installing MeshCentral agent for amd64...
+
+[OK] ✅ Mesh agent installed.
+
+[INFO] Compiling Tactical RMM agent for amd64...
+
+[OK] ✅ Tactical RMM agent compiled.
+
+[INFO] Installing Tactical Agent service...
+
+[OK] ✅ Tactical Agent installed successfully.
+
+[OK] ✅ Tactical Agent service installed and started.
+
+[INFO] Cleaning up temporary files...
+
+[OK] ✅ Temporary files cleaned.
+
+---
 
 <a id="update-the-agent"></a>
 
