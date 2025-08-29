@@ -21,7 +21,6 @@ The script is designed for reliability and flexibility, supporting multiple syst
 * [📖 Installation Wiki](https://github.com/Brandon-Roff/LinuxRMM-Script/wiki)
 * [📌 Credits](#credits)
 
-
 ---
 
 <a id="supported-architectures-platforms"></a>
@@ -36,8 +35,8 @@ The script is designed for reliability and flexibility, supporting multiple syst
 ### Tested On
 
 * Debian 10, 11, 12
-* Ubuntu 22.04
-* Raspbian (Pi 2, 3, 3B+, 3A, 4B, Pi Zero)
+* Ubuntu 20.04, 21.04, 22.04, 24.04
+* Raspbian (Raspberry Pi OS) (Pi 2, 3, 3B+, 3A, 4B, Pi Zero)
 * Cloud VPS providers
 * Proxmox VMs
 
