@@ -133,7 +133,7 @@ Run the script with the following syntax:
 
 ## 🎨 Prettier `--simple` Output
 
-he script supports a `--simple` flag to make installation output cleaner and more readable.  
+The script supports a `--simple` flag to make installation output cleaner and more readable.
 
 ### Usage:
 
